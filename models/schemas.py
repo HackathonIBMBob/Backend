@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 from pydantic import BaseModel
 
@@ -23,12 +23,17 @@ class ModernizeRequest(BaseModel):
     job_id: str
 
 
-class ModernizeResponse(BaseModel):
+class ModernizeStartResponse(BaseModel):
     job_id: str
-    files_processed: int
-    zip_url: str
-    docx_url: str
-    summary: str
+    status: str
+
+
+class JobStatusResponse(BaseModel):
+    job_id: str
+    status: str
+    progress: int
+    stage: str
+    result: Any
 
 
 class FileResult(BaseModel):
