@@ -64,6 +64,36 @@ def scan_files(source_dir: str) -> List[Dict[str, object]]:
     return files
 
 
+def scan_dependency_files(source_dir: str) -> List[Dict[str, str]]:
+    """Return content of well-known dependency manifests found anywhere in the repo."""
+    DEPENDENCY_FILENAMES = {
+        "pom.xml",
+        "package.json",
+        "requirements.txt",
+        "build.gradle",
+        "build.gradle.kts",
+        "pyproject.toml",
+        "Cargo.toml",
+        "go.mod",
+        "go.sum",
+    }
+    found: List[Dict[str, str]] = []
+    source_abs = os.path.abspath(source_dir)
+
+    for root, dirs, filenames in os.walk(source_abs):
+        dirs[:] = [d for d in dirs if d not in {".git", "__pycache__", "node_modules", "target", ".gradle"}]
+        for filename in filenames:
+            if filename not in DEPENDENCY_FILENAMES:
+                continue
+            full_path = os.path.join(root, filename)
+            if os.path.getsize(full_path) > MAX_FILE_SIZE_BYTES:
+                continue
+            relative_path = os.path.relpath(full_path, source_abs).replace(os.sep, "/")
+            found.append({"path": relative_path, "content": _read_text_file(full_path)})
+
+    return found
+
+
 def extract_repo(zip_path: str, dest: str) -> List[dict]:
     _safe_extract(zip_path, dest)
     return scan_files(dest)

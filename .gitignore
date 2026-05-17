@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+.envrc
 
 # Virtual environments
 .venv/
@@ -23,6 +24,7 @@ pip-wheel-metadata/
 # Test and coverage artifacts
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
 .tox/
 .nox/
@@ -32,10 +34,13 @@ htmlcov/
 .ruff_cache/
 .pyre/
 .pytype/
+.hypothesis/
 
 # Local app artifacts
 uploads/
 *.log
+*.pid
+*.seed
 
 # Editors and OS files
 .vscode/
@@ -44,3 +49,7 @@ uploads/
 *.swo
 .DS_Store
 Thumbs.db
+
+# Notebook and local tool metadata
+.ipynb_checkpoints/
+.python-version

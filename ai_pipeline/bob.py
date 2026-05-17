@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 from typing import Any, Dict, List
 
@@ -27,8 +29,13 @@ class BobOrchestrator:
     async def analyze(self, repo_files: List[dict]) -> Dict[str, Any]:
         return await asyncio.to_thread(self.analyzer.run, repo_files)
 
-    async def refactor(self, repo_files: List[dict], analysis: Dict[str, Any]) -> Dict[str, Any]:
-        return await asyncio.to_thread(self.refactor_agent.run, repo_files, analysis)
+    async def refactor(
+        self,
+        repo_files: List[dict],
+        analysis: Dict[str, Any],
+        dep_files: List[dict] | None = None,
+    ) -> Dict[str, Any]:
+        return await asyncio.to_thread(self.refactor_agent.run, repo_files, analysis, dep_files or [])
 
     async def document(
         self,

@@ -7,6 +7,10 @@ class IngestRequest(BaseModel):
     github_url: str
 
 
+class LocalIngestRequest(BaseModel):
+    local_path: str
+
+
 class FileInfo(BaseModel):
     path: str
     language: str

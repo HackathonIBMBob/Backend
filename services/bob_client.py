@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import os
 from typing import List
@@ -7,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODEL_ID = "ibm/granite-34b-code-instruct"
+MODEL_ID = "meta-llama/llama-3-3-70b-instruct"
 
 
 def _credential_error() -> str | None:
@@ -36,17 +38,17 @@ def _model():
     if credential_error:
         raise RuntimeError(credential_error)
 
-    from ibm_watsonx_ai import APIClient, Credentials
-    from ibm_watsonx_ai.foundation_models import ModelInference
+    # ibm-watsonx-ai 0.0.5 exposes Model (not ModelInference) and takes a plain
+    # credentials dict instead of the Credentials class (which doesn't exist here).
+    from ibm_watsonx_ai.foundation_models import Model
 
-    credentials = Credentials(
-        url=os.getenv("WATSONX_URL", "https://us-south.ml.cloud.ibm.com"),
-        api_key=os.getenv("WATSONX_APIKEY"),
-    )
-    client = APIClient(credentials)
-    return ModelInference(
+    credentials = {
+        "url": os.getenv("WATSONX_URL", "https://us-south.ml.cloud.ibm.com"),
+        "apikey": os.getenv("WATSONX_APIKEY"),
+    }
+    return Model(
         model_id=MODEL_ID,
-        api_client=client,
+        credentials=credentials,
         project_id=os.getenv("WATSONX_PROJECT_ID"),
         params={
             "decoding_method": "greedy",
@@ -56,9 +58,30 @@ def _model():
     )
 
 
+_MAX_RETRIES = 3
+
+
 def _generate_json(prompt: str) -> dict:
-    response = _model().generate_text(prompt=prompt)
-    return json.loads(_strip_json_fences(response))
+    model = _model()
+    last_exc: Exception | None = None
+
+    for attempt in range(1, _MAX_RETRIES + 1):
+        raw = model.generate_text(prompt=prompt)
+        print(f"[bob_client] attempt {attempt}/{_MAX_RETRIES} raw response: {repr(raw)}")
+
+        if not raw or not raw.strip():
+            print(f"[bob_client] attempt {attempt}: empty response, retrying...")
+            last_exc = ValueError("Model returned empty response")
+            continue
+
+        try:
+            return json.loads(_strip_json_fences(raw))
+        except json.JSONDecodeError as exc:
+            print(f"[bob_client] attempt {attempt}: JSONDecodeError — {exc}")
+            last_exc = exc
+
+    print(f"[bob_client] all {_MAX_RETRIES} attempts failed ({last_exc}), returning empty dict")
+    return {}
 
 
 def analyze_architecture(files: List[dict]) -> dict:

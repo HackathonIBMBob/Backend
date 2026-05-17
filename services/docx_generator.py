@@ -196,7 +196,30 @@ Packer.toBuffer(doc).then(buffer => {{
                 npm_root if not existing_node_path else os.pathsep.join([npm_root, existing_node_path])
             )
     except Exception as exc:
-        print(f"Could not resolve global npm root for docx package: {exc}")
+        print(f"[docx_generator] could not resolve global npm root: {exc}")
 
-    subprocess.run(["node", js_path], check=True, env=env)
+    try:
+        proc = subprocess.run(
+            ["node", js_path],
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if proc.stdout:
+            print(f"[docx_generator] node stdout: {proc.stdout.strip()}")
+        if proc.stderr:
+            print(f"[docx_generator] node stderr: {proc.stderr.strip()}")
+        if proc.returncode != 0:
+            print(f"[docx_generator] node exited with code {proc.returncode} — docx skipped")
+            return None
+    except Exception as exc:
+        print(f"[docx_generator] failed to run node script: {exc} — docx skipped")
+        return None
+    finally:
+        try:
+            os.remove(js_path)
+        except OSError:
+            pass
+
     return output_path
