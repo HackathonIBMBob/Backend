@@ -11,10 +11,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "https://legacy-whisperer.vercel.app",
+        "https://legacy-whisperer-git-main-dannamendez1109s-projects.vercel.app",
+        "*",
     ],
-    # Covers all Vercel preview URLs (https://<any-subdomain>.vercel.app)
-    allow_origin_regex=r"https://.*\.vercel\.app",
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
