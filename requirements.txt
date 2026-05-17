@@ -8,3 +8,4 @@ gitpython
 numpy>=1.26.4
 pandas>=2.2.0
 gitpython
+# force rebuild Sun May 17 03:06:11 -05 2026
