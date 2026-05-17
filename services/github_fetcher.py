@@ -1,15 +1,19 @@
+import subprocess
+import sys
 from typing import List
 
 from fastapi import HTTPException
 
 from services.repo_parser import scan_files
 
+try:
+    import git
+except ImportError:
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'gitpython'])
+    import git
+
 
 def clone_repo(github_url: str, dest: str) -> List[dict]:
-    try:
-        import git
-    except ImportError as exc:
-        raise HTTPException(status_code=500, detail="GitPython is required. Run: pip install gitpython") from exc
 
     try:
         git.Repo.clone_from(github_url, dest, depth=1)
